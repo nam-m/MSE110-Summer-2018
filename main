@@ -11,20 +11,25 @@ task main()
 	int left_encoder;
 	int right_encoder;
 	//int correction;
-	int ArmPos;
-	int i = 0; //iteration value
-	float n = 1; //speed modifier, testing only
 	
+	//Arm Variables
+	int ArmPos;
+	int distance;
+	int reverse;
+	int i = 0; //iteration value
+	
+	float n = 1; //speed modifier, testing only
+
 	setMotorBrakeMode(LeftMotor,motorCoast);
 	setMotorBrakeMode(RightMotor,motorCoast);
 	resetMotorEncoder(LeftMotor);
 	resetMotorEncoder(RightMotor);
-	
+
 	while (true)
 	{
 		float ObjDist = getUSDistance(Ultra);
 			//displayCenteredBigTextLine(7, "ObjDist: %f", ObjDist);
-		
+
 /*Stop 10cm away and beep*/
 		if (ObjDist <= 10 && i == 0)
 		{
@@ -33,25 +38,56 @@ task main()
 			sleep (1000);
 			i++;
   	}
-  		
-  	ArmPos = getMotorEncoder(AM); //(possibly move into if statement)
+
+   //(possibly move into if statement)
 		//displayCenteredBigTextLine(7, "ArmPos: %f", ArmPos);
-		
+
 /*Move Object at least 10cm away from line*/
-  	if (ObjDist <= 3) 
+  	if (ObjDist <= 5)
 		{
-			//ArmPos = getMotorEncoder(AM); (Maybe)
+			//Move Arm Down
+			ArmPos = getMotorEncoder(AM);
 			setMotorTarget(AM, -135, 100*n);
 			waitUntilMotorStop(AM);
-		}
-
-		//Code to move object off table here
-		//do while loop here?
+			
+			//90 degree right turn
+			setMotorSyncEncoder(LeftMotor, RightMotor, -50, 380, 100*n); 
+			waitUntilMotorStop(LeftMotor);
+			resetMotorEncoder(LeftMotor);
+			
+			
+			setMotorSyncEncoder(LeftMotor, RightMotor, 0, 205, 100*n);
+			
+			do {
+			
+					light_grade = getColorReflected(Color);
+					distance = getMotorEncoder(LeftMotor);
+					
+					if (light_grade == 0)
+						setMotorSync(LeftMotor, RightMotor, 0, 0*n);
+						
+			}while (light_grade != 0 && distance <= 205);
+			
+			
+			//waitUntilMotorStop(LeftMotor);
+			
+			while(light_grade != 0 && light_grade <= 40)
+			 	{
+					light_grade = getColorReflected(Color);
+					
+					setMotorSyncEncoder(LeftMotor, RightMotor, 0, 103, 100*n);
+					waitUntilMotorStop(LeftMotor);
+				}
+					
+		//setMotorSync(LeftMotor, RightMotor, 0, 0*n);
+		setMotorTarget(AM, 0, 100*n);
+		waitUntilMotorStop(AM);
 		
-		if (ArmPos == -135) // ( and Object is off the table/ car has moved 10 cm)
-		{
-			setMotorTarget(AM, 0, 100*n);
-			waitUntilMotorStop(AM);
+		reverse = getMotorEncoder(LeftMotor);
+		setMotorSyncEncoder(LeftMotor, RightMotor, 0, reverse, -100*n);
+		waitUntilMotorStop(LeftMotor);
+    setMotorSyncEncoder(LeftMotor, RightMotor, -50, -380, -100*n); //reverse 90 degree right turn 
+    waitUntilMotorStop(LeftMotor);
 		}
 
 /*Track Line*/
@@ -61,7 +97,7 @@ task main()
 		//correction = 30 - light_grade;
 		right_encoder = getMotorEncoder(RightMotor);
 		left_encoder = getMotorEncoder(LeftMotor);
-		
+
 		if (light_grade <= 30 && light_grade > 0) //black area, turn left
 		{
 			setMotorSpeed(RightMotor, (58 - light_grade)*0.91);
@@ -69,7 +105,7 @@ task main()
 			//setMotorSpeed(RightMotor, correction * 1);
 			//setMotorSpeed(LeftMotor, correction * 1.4);
 		}
-		
+
 		else if (light_grade > 30) //out of black area, turn right (sharper)
 		{
 			//resetMotorEncoder(LeftMotor);
@@ -97,7 +133,7 @@ task main()
 			//setMotorSpeed(RightMotor, correction * 1);
 			//setMotorSpeed(LeftMotor, correction * 1.4);
 		}
-		
+
 		else
 		{
 			setMotorSpeed(RightMotor, 0);
