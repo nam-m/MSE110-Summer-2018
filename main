@@ -14,17 +14,17 @@ task main()
 	int ArmPos;
 	int i = 0; //iteration value
 	float n = 1; //speed modifier, testing only
-	
+
 	setMotorBrakeMode(LeftMotor,motorCoast);
 	setMotorBrakeMode(RightMotor,motorCoast);
 	resetMotorEncoder(LeftMotor);
 	resetMotorEncoder(RightMotor);
-	
+
 	while (true)
 	{
 		float ObjDist = getUSDistance(Ultra);
 			//displayCenteredBigTextLine(7, "ObjDist: %f", ObjDist);
-		
+
 /*Stop 10cm away and beep*/
 		if (ObjDist <= 10 && i == 0)
 		{
@@ -33,22 +33,29 @@ task main()
 			sleep (1000);
 			i++;
   	}
-  		
-  	ArmPos = getMotorEncoder(AM); //(possibly move into if statement)
+
+   //(possibly move into if statement)
 		//displayCenteredBigTextLine(7, "ArmPos: %f", ArmPos);
-		
+
 /*Move Object at least 10cm away from line*/
-  	if (ObjDist <= 3) 
+  	if (ObjDist <= 4)
 		{
-			//ArmPos = getMotorEncoder(AM); (Maybe)
+			ArmPos = getMotorEncoder(AM); (Maybe)
 			setMotorTarget(AM, -135, 100*n);
 			waitUntilMotorStop(AM);
+			
+			setMotorSync(LeftMotor, RightMotor, 0, 100*n);
+			light_grade = getColorReflected(Color);
+			
+			do{
+					light_grade = getColorReflected(Color);	
+				}while(light_grade != 0);
+					
+			setMotorSync(LeftMotor, RightMotor, 0, 0*n);
 		}
 
-		//Code to move object off table here
-		//do while loop here?
 		
-		if (ArmPos == -135) // ( and Object is off the table/ car has moved 10 cm)
+		if (ArmPos != 0) // ( and Object is off the table/ car has moved 10 cm)
 		{
 			setMotorTarget(AM, 0, 100*n);
 			waitUntilMotorStop(AM);
@@ -61,7 +68,7 @@ task main()
 		//correction = 30 - light_grade;
 		right_encoder = getMotorEncoder(RightMotor);
 		left_encoder = getMotorEncoder(LeftMotor);
-		
+
 		if (light_grade <= 30 && light_grade > 0) //black area, turn left
 		{
 			setMotorSpeed(RightMotor, (58 - light_grade)*0.91);
@@ -69,7 +76,7 @@ task main()
 			//setMotorSpeed(RightMotor, correction * 1);
 			//setMotorSpeed(LeftMotor, correction * 1.4);
 		}
-		
+
 		else if (light_grade > 30) //out of black area, turn right (sharper)
 		{
 			//resetMotorEncoder(LeftMotor);
@@ -97,7 +104,7 @@ task main()
 			//setMotorSpeed(RightMotor, correction * 1);
 			//setMotorSpeed(LeftMotor, correction * 1.4);
 		}
-		
+
 		else
 		{
 			setMotorSpeed(RightMotor, 0);
