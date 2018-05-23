@@ -46,12 +46,12 @@ task main()
   	if (ObjDist <= 5)
 		{
 			//Move Arm Down
-			ArmPos = getMotorEncoder(AM);
-			setMotorTarget(AM, -135, 100*n);
-			waitUntilMotorStop(AM);
+			//ArmPos = getMotorEncoder(AM);
+			//setMotorTarget(AM, -135, 100*n);
+			w//aitUntilMotorStop(AM);
 			
 			//90 degree right turn
-			setMotorSyncEncoder(LeftMotor, RightMotor, -50, 380, 100*n); 
+			setMotorSyncEncoder(LeftMotor, RightMotor, -50, 380, 75*n); 
 			waitUntilMotorStop(LeftMotor);
 			resetMotorEncoder(LeftMotor);
 			
@@ -68,9 +68,6 @@ task main()
 						
 			}while (light_grade != 0 && distance <= 205);
 			
-			
-			//waitUntilMotorStop(LeftMotor);
-			
 			while(light_grade != 0 && light_grade <= 40)
 			 	{
 					light_grade = getColorReflected(Color);
@@ -79,15 +76,15 @@ task main()
 					waitUntilMotorStop(LeftMotor);
 				}
 					
-		//setMotorSync(LeftMotor, RightMotor, 0, 0*n);
-		setMotorTarget(AM, 0, 100*n);
-		waitUntilMotorStop(AM);
+		//Move Arm Up
+		//setMotorTarget(AM, 0, 100*n);
+		//waitUntilMotorStop(AM);
 		
 		reverse = getMotorEncoder(LeftMotor);
 		setMotorSyncEncoder(LeftMotor, RightMotor, 0, reverse, -100*n);
 		waitUntilMotorStop(LeftMotor);
-    setMotorSyncEncoder(LeftMotor, RightMotor, -50, -380, -100*n); //reverse 90 degree right turn 
-    waitUntilMotorStop(LeftMotor);
+    		setMotorSyncEncoder(LeftMotor, RightMotor, -50, -380, -100*n); //reverse 90 degree right turn 
+    		waitUntilMotorStop(LeftMotor);
 		}
 
 /*Track Line*/
