@@ -1,0 +1,75 @@
+#pragma config(Sensor, S2,     Color,          sensorEV3_Color)
+#pragma config(Sensor, S1,     Ultra,          sensorEV3_Ultrasonic)
+#pragma config(Motor,  motorA,          RightMotor,    tmotorEV3_Large, PIDControl, driveRight, encoder)
+#pragma config(Motor,  motorD,          LeftMotor,     tmotorEV3_Large, PIDControl, driveLeft, encoder)
+
+task main()
+{
+	int light_grade;
+
+	//Moving Objects Variables
+	float ObjDist;
+	int distance;
+	int reverse;
+	int i = 0; //iteration value
+
+	float n = 0.2; //speed modifier, testing only
+
+	while (true)
+	{
+		ObjDist = getUSDistance(Ultra);
+		
+/*Stop 10cm away and beep*/
+		if (ObjDist <= 10 && i == 0)
+		{
+			setMotorSync(LeftMotor, RightMotor, 0, 0);
+			sleep (2000);
+			playSound(soundBeepBeep);
+			sleep (1000);
+			i++;
+  	}
+
+/*Move Object away from line*/
+  	if (ObjDist <= 5)
+		{
+			//90 degree right turn
+			setMotorSyncEncoder(LeftMotor, RightMotor, -50, 380, 100*n);
+			waitUntilMotorStop(LeftMotor);
+			resetMotorEncoder(LeftMotor);
+			
+			//Move 10cm; if object falls off edge, stop 
+			setMotorSyncEncoder(LeftMotor, RightMotor, 0, 205, 100*n);
+			
+			do {
+					light_grade = getColorReflected(Color);
+					
+					if (light_grade == 0)
+							setMotorSync(LeftMotor, RightMotor, 0, 0*n);
+					
+					distance = getMotorEncoder(LeftMotor);
+					
+			}while (light_grade != 0 && distance <= 205);
+
+			//if stopped on line, move another 5cm; if object falls off edge, stop 
+			while(light_grade != 0 && light_grade <= 40)
+			{
+			 		light_grade = getColorReflected(Color);
+			 		
+			 		if (light_grade == 0)
+						setMotorSync(LeftMotor, RightMotor, 0, 0*n);
+
+					else
+					{
+						setMotorSyncEncoder(LeftMotor, RightMotor, 0, 103, 100*n);
+					}				
+				}
+				
+		//Return to intial Position  
+		reverse = getMotorEncoder(LeftMotor);
+		setMotorSyncEncoder(LeftMotor, RightMotor, 0, reverse, -100*n);
+		waitUntilMotorStop(LeftMotor);
+    setMotorSyncEncoder(LeftMotor, RightMotor, -50, -380, -100*n); //reverse 90 degree right turn
+    waitUntilMotorStop(LeftMotor);
+		}
+	}
+}
