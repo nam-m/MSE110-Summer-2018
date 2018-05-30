@@ -13,11 +13,9 @@ task main()
 	int a = 0; //iteration value
 	int b = 0;
 	float n = 0.5; //speed modifier, testing only
-	//currently working with p = 1.8-2, d = 8, i = 0.005
-	//suddenly able to turn at 60 deg angle with p = 3, d = 1-1.5
-	float p = 2; // P constant 2
-	float i = 0.5; // I constant 0.5
-	float d = 7.5;  //D constant 7.5
+	float p = 2; // P constant 
+	float i = 0.5; // I constant 
+	float d = 7.5;  //D constant 
 	float straight = 20; //power level to go straight when error = 0;
 	int light_grade;
 	int black = 53; //45-50
@@ -34,8 +32,8 @@ task main()
 
 	while (true)
 	{
+		//Object Detection
 		ObjDist = getUSDistance(Ultra);
-
 		/*Stop 10cm away and beep*/
 		if (ObjDist <= 10 && a == 0)
 		{
@@ -45,7 +43,6 @@ task main()
 			sleep (500);
 			a++;
 		}
-
 		/*Move Object away from line*/
 		if (ObjDist <= 6)
 		{
@@ -56,7 +53,6 @@ task main()
 
 			//Move 10cm; if object falls off edge, stop
 			clearTimer(T1);
-
 			setMotorSyncTime(LeftMotor, RightMotor, 0, 500, 100*n);
 
 			do {
@@ -78,7 +74,6 @@ task main()
 
 				if (light_grade == 0)
 					setMotorSync(LeftMotor, RightMotor, 0, 0*n);
-
 				else
 				{
 					setMotorSyncTime(LeftMotor, RightMotor, 0, 150, -100*n);
@@ -97,6 +92,7 @@ task main()
 			time = 500;
 		}
 
+		//PID Controller
 		light_grade = getColorReflected(Color);
 		displayCenteredBigTextLine(2, "Color: %d", light_grade);
 		displayCenteredBigTextLine(5, "d: %d", derivative);
@@ -110,6 +106,4 @@ task main()
 		lastError = error;
 		sleep(1);
 	}
-
-
 }
