@@ -1,0 +1,26 @@
+clc;
+clear all;
+close all;
+
+%%Data Loading
+RawImg = double(imread('letter_B_noisy.jpg'));
+Data = RawImg(850,:);
+
+%%Moving Average (Filtering Data; can choose the number of points to average)
+n = 10;
+for (i = 1: length(Data)- (n-1))
+    DataAvg(i) = mean(-Data(i:i+(n-1)));   
+end
+
+% %%Finding Peaks
+% for (i = 1: length(DataAvg))
+%     DataAvg(i) = -DataAvg(i);
+% end
+
+figure
+hold on
+% plot(DataAvg);
+findpeaks(DataAvg,'MinPeakHeight',-100, 'MinPeakDistance',25);
+
+figure
+plot(smooth(-Data));
