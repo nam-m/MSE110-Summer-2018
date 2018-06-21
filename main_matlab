@@ -2,25 +2,75 @@ clc;
 clear all;
 close all;
 
-%%Data Loading
-RawImg = double(imread('letter_B_noisy.jpg'));
-Data = RawImg(850,:);
+%% Data Loading/Image Processing
+RawImg = double(imread('letter_B_noisy_small.jpg'));
+Data = RawImg(85,1:(length(RawImg)/2));
 
-%%Moving Average (Filtering Data; can choose the number of points to average)
-n = 10;
-for (i = 1: length(Data)- (n-1))
-    DataAvg(i) = mean(-Data(i:i+(n-1)));   
+% %troubleshooting only
+% figure
+% plot(Data)
+
+%% Data Smoothing (Moving Average; can choose # of pts to average)
+n = 1; %will change depending on inputted data
+for (i=1: length(Data)-(n-1))
+    DataAvg(i) = mean(Data(i:i+(n-1)));   
 end
 
-% %%Finding Peaks
-% for (i = 1: length(DataAvg))
-%     DataAvg(i) = -DataAvg(i);
-% end
+% %troubleshooting only
+% figure
+% plot(DataAvg)
 
-figure
-hold on
-% plot(DataAvg);
-findpeaks(DataAvg,'MinPeakHeight',-100, 'MinPeakDistance',25);
+%% Discrete difference to find edges
+for (i=1:length(DataAvg)-1)
+ DataAvgDiff(i) = abs(DataAvg(i+1) - DataAvg(i));
+end
 
-figure
-plot(smooth(-Data));
+% %troubleshooting only
+% figure
+% plot(DataAvgDiff);
+% [pks,locs] = findpeaks(DataAvgDiff,'MinPeakHeight',30,'MinPeakDistance',2); %Peak height and *distance* will change depending on data
+% hold on;
+% plot(locs,pks,'or');
+
+%% Finds widths of the bars and then matches with corresponding table value  
+widths = locs(2:end)-locs(1:end-1);
+widths_norm = round(widths/min(widths));
+
+%Will check if bar widths are great than zero; will replace with three if true 
+for (i=1:length(widths_norm))
+     if (widths_norm(i) > 3)
+         widths_norm(i) = 3;
+     end
+end
+
+%Converts matrix into number (converts to string, removes spaces, and then converts back to number)
+CODE = str2num(strrep(num2str(widths_norm), ' ', '')); 
+LOOKUPTABLE =  [311113113  %A
+                113113113; %B
+                313113111; %C
+                111133113; %D
+                311133111; %E
+                113133111; %F
+                111113313; %G
+                311113311; %H
+                113113311; %I
+                111133311; %J
+                311111133; %K
+                113111133; %L
+                313111131; %M
+                111131133; %N
+                311131131; %O
+                113131131; %P
+                111111333; %Q
+                311111331; %R
+                113111331; %S
+                111131331; %T
+                331111113; %U
+                133111113; %V
+                333111111; %W
+                131131113; %X
+                331131111; %Y
+                133131111];%Z
+
+ c = find(LOOKUPTABLE == CODE);
+ Letter = char(64+c)
