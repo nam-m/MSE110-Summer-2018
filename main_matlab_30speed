@@ -3,34 +3,37 @@ clear all;
 close all;
 
 %% Data Loading/Image Processing
-RawImg = double(imread('letter_B_noisy_small.jpg'));
-Data = RawImg(85,1:(length(RawImg)/2));
+% RawImg = double(imread('letter_B_noisy_small.jpg'));
+% Data = RawImg(85,1:(length(RawImg)/2));
 
-% %troubleshooting only
-% figure
-% plot(Data)
+Data = csvread('datalog-1.csv').';
+Data(1,:) = [];
+
+%troubleshooting only
+figure
+plot(Data)
 
 %% Data Smoothing (Moving Average; can choose # of pts to average)
-n = 1; %will change depending on inputted data
+n = 5; %will change depending on inputted data
 for (i=1: length(Data)-(n-1))
     DataAvg(i) = mean(Data(i:i+(n-1)));   
 end
 
-% %troubleshooting only
-% figure
-% plot(DataAvg)
+%troubleshooting only
+figure
+plot(DataAvg)
 
 %% Discrete difference to find edges
 for (i=1:length(DataAvg)-1)
  DataAvgDiff(i) = abs(DataAvg(i+1) - DataAvg(i));
 end
 
-% %troubleshooting only
-% figure
-% plot(DataAvgDiff);
-% [pks,locs] = findpeaks(DataAvgDiff,'MinPeakHeight',30,'MinPeakDistance',2); %Peak height and *distance* will change depending on data
-% hold on;
-% plot(locs,pks,'or');
+%troubleshooting only
+figure
+plot(DataAvgDiff);
+[pks,locs] = findpeaks(DataAvgDiff,'MinPeakHeight',0.6,'MinPeakDistance',5.95); %Peak height and *distance* will change depending on data
+hold on;
+plot(locs,pks,'or');
 
 %% Finds widths of the bars and then matches with corresponding table value  
 widths = locs(2:end)-locs(1:end-1);
@@ -41,6 +44,10 @@ for (i=1:length(widths_norm))
      if (widths_norm(i) > 3)
          widths_norm(i) = 3;
      end
+     
+     if (widths_norm(i) == 2)
+         widths_norm(i) = 1; 
+     end    
 end
 
 %Converts matrix into number (converts to string, removes spaces, and then converts back to number)
