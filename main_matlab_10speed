@@ -6,7 +6,7 @@ close all;
 % RawImg = double(imread('letter_B_noisy_small.jpg'));
 % Data = RawImg(85,1:(length(RawImg)/2));
 
-Data = csvread('datalog-1.csv').';
+Data = csvread('datalog-1(6-A).csv').';
 Data(1,:) = [];
 
 %troubleshooting only
@@ -14,7 +14,7 @@ figure
 plot(Data)
 
 %% Data Smoothing (Moving Average; can choose # of pts to average)
-n = 5; %will change depending on inputted data
+n = 125; %will change depending on inputted data
 for (i=1: length(Data)-(n-1))
     DataAvg(i) = mean(Data(i:i+(n-1)));   
 end
@@ -31,7 +31,7 @@ end
 %troubleshooting only
 figure
 plot(DataAvgDiff);
-[pks,locs] = findpeaks(DataAvgDiff,'MinPeakHeight',0.6,'MinPeakDistance',5.95); %Peak height and *distance* will change depending on data
+[pks,locs] = findpeaks(DataAvgDiff,'MinPeakHeight',0.035,'MinPeakDistance',250); %Peak height and *distance* will change depending on data
 hold on;
 plot(locs,pks,'or');
 
