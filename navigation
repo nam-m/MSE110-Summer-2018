@@ -15,53 +15,60 @@ const int init_y = 1; //initial y coordinates
 const int end_x = 6; //ending x coordinates
 const int end_y = 4; //ending y coordinates
 
-const int n = 0.1; //speed modifier
-const int distance = 100;//# of encoder counts to traverse each cell
-const int turn = 100; //#of encoder counts to turn 90 deg
+const int n = -0.3; //speed modifier
+const int straight = 1400;//# of ms counts to traverse each cell
+const int turn = 680; //#of ms counts to turn 90 deg
+const int backup = 380; //#of ms to backup
 
 //path optimization variables
 char moves[100];
-int numMoves = 0;
+int numMoves = 1; //array iteration (yes I know arrays start at 0)
 
 //Robot movements
 void forward()
 {
-	setMotorSyncEncoder(leftMotor, rightMotor, 0, distance ,100*n);
+	setMotorSyncTime(leftMotor, rightMotor, 0, straight ,100*n);
 	waitUntilMotorStop(leftMotor);
 }
 
 void left() //rotate left 90 deg
 {
-	setMotorSyncEncoder(leftMotor, rightMotor, -100, turn, 100*n);//sign of turn TBD
+	setMotorSyncTime(leftMotor, rightMotor, -100, turn, 100*n);//sign of turn TBD
 	waitUntilMotorStop(leftMotor);
 }
 
 void right() //rotate right 90 deg
 {
-	setMotorSyncEncoder(leftMotor, rightMotor, 100, -turn, 100*n);//sign of turn TBD
+	setMotorSyncTime(leftMotor, rightMotor, 100, turn, 100*n);//sign of turn TBD
 	waitUntilMotorStop(leftMotor);
 }
 
 bool checkWall() //wall detection
 {
-	bool found = false;
-
 	if (getUSDistance(Ultra) <= 5)
-		found = true;
+		return true;
 	else
-		return found;
+		return false;
+}
+
+bool bumper()
+{
+		setMotorSyncTime(leftMotor, rightMotor, 0, 2000 , -50); //straighten self with wall
+		sleep(1000);
+		setMotorSyncTime(leftMotor, rightMotor, 0, backup ,100*n); //backup to middle
+		sleep(1000);
 }
 
 void simplifyMoves()
 {
 	// only simplify path if there are at least 3 moves or the second-to-last move was a 'B'
-	if(numMoves < 3 || moves[numMoves-2] != 'B')
+	if(numMoves < 3 || moves[numMoves-1] != 'B')
 		return;
 
 	int totalAngle = 0;
 	int i;
 
-	for(i = 1; i <= 3; i++)
+	for(i = 0; i < 3; i++)
 	{
 		switch(moves[numMoves - i])
 		{
@@ -86,19 +93,19 @@ void simplifyMoves()
 	switch(totalAngle)
 	{
 	case 0:
-		moves[numMoves - 3] = 'S';
+		moves[numMoves - 2] = 'S';
 		break;
 
 	case 90:
-		moves[numMoves - 3] = 'R';
+		moves[numMoves - 2] = 'R';
 		break;
 
 	case 180:
-		moves[numMoves - 3] = 'B';
+		moves[numMoves - 2] = 'B';
 		break;
 
 	case 270:
-		moves[numMoves - 3] = 'L';
+		moves[numMoves - 2] = 'L';
 		break;
 	}
 	// The path is now two steps shorter.
@@ -108,18 +115,65 @@ void simplifyMoves()
 	//must test this
 }
 
-void mazeSolve() //returns array of char with list of direction
+void reverseMoves()
 {
+	int i;
 
-	int i = 0; //array iterator
+	for(i = 0; i < numMoves; i++)
+	{
+		switch(moves[i])
+		{
+		case 'S':
+			break;
+
+		case 'R':
+			moves[i] = 'L';
+			break;
+
+		case 'L':
+			moves[i] = 'R';
+			break;
+		}
+	}
+}
+
+//execution of revereseMoves
+void unsolveMaze()
+{
+	int i;
+
+	for(i = 1; i <= numMoves; i++)
+	{
+		switch(moves[numMoves - i])
+		{
+		case 'S':
+			//move forward function
+			break;
+
+		case 'R':
+			//move right function
+			break;
+
+		case 'L':
+			//move left function
+			break;
+		}
+	}
+}
+
+void mazeSolve() //solves maze
+{
 	int x = init_x;
 	int y = init_y;
 	int face = init_face; //where bot currently faces
 	int numTurns; // number of turns while in cell
 	bool wall = false;
+	bool bumpWall = false;
 
 	while (x != end_x && y != end_y)
 	{
+		bumpWall = checkWall();
+		
 		numTurns = 1;
 		left();
 
@@ -130,9 +184,13 @@ void mazeSolve() //returns array of char with list of direction
 
 		wall = checkWall();
 
-		while (wall == false)
+		while (wall == true)
 		{
+			if (bumpWall == true && numTurns < 3)
+				bumper();
+		
 			right();
+			
 			if (face == W)
 				face = N;
 			else
@@ -187,4 +245,13 @@ void mazeSolve() //returns array of char with list of direction
 		simplifyMoves();
 		numMoves++;
 	}
+}
+
+task main()
+{
+	playTone(300, 200);
+	mazeSolve();
+	playTone(300, 200);
+	reverseMoves();
+	unsolveMaze();
 }
