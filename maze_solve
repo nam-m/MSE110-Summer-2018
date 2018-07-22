@@ -9,11 +9,11 @@ const int N = 0; //north
 const int E = 1; //east
 const int S = 2; //south
 const int W = 3; //west
-const int init_face = E; //predefined face direction in maze (N, S, E, or W)
+const int init_face = W; //predefined face direction in maze (N, S, E, or W)
 const int init_x = 1; //initial x coordinates
-const int init_y = 2; //initial y coordinates
-const int end_x = 3; //ending x coordinates
-const int end_y = 3; //ending y coordinates
+const int init_y = 1; //initial y coordinates
+const int end_x = 6; //ending x coordinates
+const int end_y = 4; //ending y coordinates
 
 const int n = -0.3; //speed modifier
 const int straight = 2500;//# of ms counts to traverse each cell
@@ -225,7 +225,7 @@ void mazeSolve() //solves maze
 			moves[numMoves] = 'B';
 			break;
 		}
-		//simplifyMoves();
+		simplifyMoves();
 
 		numMoves++;
 	}
@@ -261,8 +261,8 @@ void unsolveMaze()
 	right();
 	right();
 	//if (moves[numMoves] != 'S')	
-	//forward();
-	for(i = 0; i < numMoves; i++)
+	forward();
+	for(i = 0; i < numMoves-1; i++)
 	{
 		switch(moves[numMoves - i])
 		{
@@ -295,7 +295,6 @@ task main()
 	//right();
 	//left();
 	//bumper();
-	
 	reverseMoves();
 	unsolveMaze();
 	playTone(300, 200);
