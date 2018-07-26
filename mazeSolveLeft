@@ -14,9 +14,9 @@ const int end_x = 6; //ending x coordinates
 const int end_y = 4; //ending y coordinates
 
 const int n = 1; //speed modfier
-const int straight = 2500;//# of encoder counts to traverse each cell //2500 for 5:1 ratio
-const int turn = 990; //#of encoder counts to turn 90 deg //990 for 5:1 ratio
-const int backup = 800; //#of encoder counts to backup // 800 for 5:1 gear ratio
+const int straight = 1500;//# of encoder counts to traverse each cell //2500 for 5:1 ratio; 1500 for 3:1
+const int turn = 597; //#of encoder counts to turn 90 deg //990 for 5:1 ratio; 597 for 3:1
+const int backup = 480; //#of encoder counts to backup // 800 for 5:1 gear ratio; 480 for 3:1
 
 //path optimization variables
 char moves[50];
