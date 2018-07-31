@@ -23,7 +23,8 @@ const int wait = 250; //ms delay between each movement
 //path optimization variables
 char moves[50];
 int numMoves = 1; //array iteration (yes I know arrays start at 0)
-int count = 0;
+int count = 0; //number of potential bumps when returning to initial position
+
 //play sound at 300 Hz for 2s
 void sound()
 {
@@ -35,8 +36,8 @@ void sound()
 void forward()
 {
 	setMotorSyncEncoder(leftMotor, rightMotor, 0, straight, 100*n);
-  waitUntilMotorStop(leftMotor);
-  sleep(wait);
+  	waitUntilMotorStop(leftMotor);
+  	sleep(wait);
 }
 
 void left () //rotate left 90 deg
@@ -74,18 +75,9 @@ void bumper()
 }
 
 void calibrate ()
-{
-	//if (getwall(Color) > 0)
-	//	count++;
-
-	//if (count % 3 == 0)
-	//{
-	//	right();
-	//	bumper();
-	//	left();
-	//}
-	
-	if (getUSDistance(S2)<= 20){
+{	
+	if (getUSDistance(S2)<= 20)
+	{
 		count++;
 		if (count % 2 != 0)
 			bumper();
