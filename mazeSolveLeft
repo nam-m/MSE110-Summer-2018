@@ -9,47 +9,48 @@ const int E = 1; //east
 const int S = 2; //south
 const int W = 3; //west
 const int init_face = W; //predefined face direction in maze (N, S, E, or W)
-const int init_x = 1; //initial x coordinates
-const int init_y = 1; //initial y coordinates
-const int end_x = 6; //ending x coordinates
+const int init_x = 4; //initial x coordinates
+const int init_y = 4; //initial y coordinates
+const int end_x = 4; //ending x coordinates
 const int end_y = 1; //ending y coordinates
 
 const int n = 1; //speed modfier
-const int straight = 1490;//# of encoder counts to traverse each cell //2500 for 5:1 ratio; 1490 for 3:1
-const int turn = 585; //#of encoder counts to turn 90 deg //990 for 5:1 ratio; 585 for 3:1
-const int backup = 440; //#of encoder counts to backup // 800 for 5:1 gear ratio; 440 for 3:1
-const int wait = 250; //ms delay between each movement
+const int straight = 1510;//# of encoder counts to traverse each cell //2500 for 5:1 ratio; 1490 for 3:1
+const int turn = 582; //#of encoder counts to turn 90 deg //990 for 5:1 ratio; 585 for 3:1
+const int backup = 420; //#of encoder counts to backup // 800 for 5:1 gear ratio; 440 for 3:1
+const int wait = 50; //ms delay between each movement
 
 //path optimization variables
 char moves[50];
 int numMoves = 1; //array iteration (yes I know arrays start at 0)
-int count = 0; //number of potential bumps when returning to initial position
+int count = 0; //number of bumps while returning to start
+//bool lastStraight = false; //
 
 //play sound at 300 Hz for 2s
 void sound()
 {
 	playTone(300, 200);
-	sleep(2000);
+	//sleep(2000);
 }
 
 //Robot movements
 void forward()
 {
 	setMotorSyncEncoder(leftMotor, rightMotor, 0, straight, 100*n);
-  	waitUntilMotorStop(leftMotor);
-  	sleep(wait);
+	waitUntilMotorStop(leftMotor);
+	sleep(wait);
 }
 
 void left () //rotate left 90 deg
 {
-	setMotorSyncEncoder(leftMotor, rightMotor, 100, turn, -80*n);
+	setMotorSyncEncoder(leftMotor, rightMotor, 100, turn, -100*n);
 	waitUntilMotorStop(leftMotor);
 	sleep(wait);
 }
 
 void right() //rotate right 90 deg
 {
-	setMotorSyncEncoder(leftMotor, rightMotor, -100, turn, -80*n);
+	setMotorSyncEncoder(leftMotor, rightMotor, -100, turn, -100*n);
 	waitUntilMotorStop(leftMotor);
 	sleep(wait);
 }
@@ -65,7 +66,7 @@ bool checkWall() //wall detection
 
 void bumper()
 {
-	setMotorSyncTime(leftMotor, rightMotor, 0, 1800 , 100); //straighten self with wall for 1.8 seconds
+	setMotorSyncTime(leftMotor, rightMotor, 0, 1000 , 100); //straighten self with wall for 1.8 seconds
 	waitUntilMotorStop(leftMotor);
 	//sleep(wait);
 
@@ -74,14 +75,32 @@ void bumper()
 	//sleep(wait);
 }
 
-void calibrate ()
-{	
+void calibrate (/*char lastMove*/)
+{
 	if (getUSDistance(S2)<= 20)
 	{
 		count++;
-		if (count % 2 != 0)
+		if (count % 3 != 0)
 			bumper();
+		//return;
 	}
+
+	//if (lastMove == 'S'){
+	//	if (lastStraight == true){
+	//		lastStraight = false;
+	//		return;
+	//	}
+
+	//	right();
+	//	if (getUSDistance(S2)<= 20){
+	//		count++;
+	//		if (count % 3 != 0){
+	//			bumper();
+	//			lastStraight = true;
+	//		}
+	//	}
+	//	left();
+	//}
 }
 
 void simplifyMoves()
@@ -161,10 +180,36 @@ void mazeSolve() //solves maze
 
 		wall = checkWall();
 
-		while (wall == true)
-		{
+		while (wall == true){
 			if (bumpWall == true && numTurns < 3) //will only bump wall twice
+				switch (count)
+			{
+			case 0:
 				bumper();
+				count++;
+				break;
+
+			case 1:
+				bumper();
+				count++;
+				break;
+
+			case 2:
+				count++;
+				break;
+
+			case 3:
+				count++;
+				break;
+
+			case 4:
+				count++;
+				break;
+
+			case 5:
+				count = 0;
+				break;
+			}
 
 			right();
 
@@ -177,123 +222,128 @@ void mazeSolve() //solves maze
 			wall = checkWall();
 		}
 
-		forward();
 
-		//changes the x,y position of the robot
-		switch (face)
-		{
-		case N:
-			y++;
-			break;
+	forward();
 
-		case E:
-			x++;
-			break;
+	//changes the x,y position of the robot
+	switch (face)
+	{
+	case N:
+		y++;
+		break;
 
-		case S:
-			y--;
-			break;
+	case E:
+		x++;
+		break;
 
-		case W:
-			x--;
-			break;
-		}
+	case S:
+		y--;
+		break;
 
-		//creates the path of the robot
-		switch (numTurns)
-		{
-		case 1:
-			moves[numMoves] = 'L';
-			break;
-
-		case 2:
-			moves[numMoves] = 'S';
-			break;
-
-		case 3:
-			moves[numMoves] = 'R';
-			break;
-
-		case 4:
-			moves[numMoves] = 'B';
-			break;
-		}
-		simplifyMoves();
-
-		numMoves++;
+	case W:
+		x--;
+		break;
 	}
-	numMoves--; //removes extra empty move added at the end of above loop
+
+	//creates the path of the robot
+	switch (numTurns)
+	{
+	case 1:
+		moves[numMoves] = 'L';
+		break;
+
+	case 2:
+		moves[numMoves] = 'S';
+		break;
+
+	case 3:
+		moves[numMoves] = 'R';
+		break;
+
+	case 4:
+		moves[numMoves] = 'B';
+		break;
+	}
+
+	simplifyMoves();
+	numMoves++;
+}
+numMoves--; //removes extra empty move added at the end of above loop
 }
 
 void reverseMoves()
 {
-	int i;
+int i;
 
-	for(i = 1; i <= numMoves; i++)
+for(i = 1; i <= numMoves; i++)
+{
+	switch(moves[i])
 	{
-		switch(moves[i])
-		{
-		case 'S':
-			break;
+	case 'S':
+		break;
 
-		case 'R':
-			moves[i] = 'L';
-			break;
+	case 'R':
+		moves[i] = 'L';
+		break;
 
-		case 'L':
-			moves[i] = 'R';
-			break;
-		}
+	case 'L':
+		moves[i] = 'R';
+		break;
 	}
+}
 }
 
 void unsolveMaze() //execution of revereseMoves
 {
-	int i;
-	//180 and then forward
-	right();
-	right();
-	forward();
-	calibrate();
 
-	//execute moves back to initial start
-	for(i = 0; i < numMoves-1; i++)
+int i;
+count = 0;
+
+//180 and then forward
+right();
+right();
+forward();
+calibrate(/*'S'*/);
+
+//execute moves back to initial start
+for(i = 0; i < numMoves-1; i++)
+{
+	switch(moves[numMoves - i])
 	{
-		switch(moves[numMoves - i])
-		{
-		case 'S':
-			break;
+	case 'S':
+		break;
 
-		case 'R':
-			right();
-			break;
+	case 'R':
+		right();
+		break;
 
-		case 'L':
-			left();
-			break;
-		}
-		
-		forward();
-		
-		if (numMoves - i != 2)
-			calibrate();
+	case 'L':
+		left();
+		break;
 	}
+
+	forward();
+
+	if (numMoves - i != 2)
+		calibrate(/*moves[numMoves - i]*/);
+}
 }
 
 task main()
 {
-	setMotorBrakeMode(motorA, motorBrake);
-	setMotorBrakeMode(motorD, motorBrake);
-	
-	//start
-	sound();
-	mazeSolve();
+setMotorBrakeMode(motorA, motorBrake);
+setMotorBrakeMode(motorD, motorBrake);
 
-	//found end
-	sound();
+//start
+sound();
+mazeSolve();
 
-	//back to start
-	reverseMoves();
-	unsolveMaze();
-	sound();
+//found end
+sound();
+
+//back to start
+reverseMoves();
+unsolveMaze();
+sound();
+sleep(2000);
 }
